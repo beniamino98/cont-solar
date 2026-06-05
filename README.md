@@ -8,18 +8,16 @@ The citable archive is available on Zenodo:
 
 ## Archive and repository policy
 
-The replication folder is intended to be distributed in two forms.
+The replication material is intended to be distributed in two forms.
 
 1. A fixed Zenodo snapshot, used for citation and long-term preservation.
-2. A Git repository initialized from the same snapshot, used only for future
-   maintenance updates.
+2. A selective public Git mirror containing the README, `outputs.RData`, and
+   the scripts/functions needed to reproduce the empirical pipeline.
 
-The `site_/` folder is a companion website. It is copied into the Zenodo
-archive, and the maintenance Git repository tracks the rendered static site
-under `site_/_site/` so that Netlify can publish it directly from the same
-repository after each push. The site should therefore be rebuilt locally before
-committing updates. This `README.md` is included both in Zenodo and in the Git
-repository.
+Private submission files and revision-management material, such as the main
+manuscript, appendix, `revision/`, and rendered site sources, are maintained
+outside the selective public mirror. The full archival snapshot on Zenodo may
+contain additional rendered documentation and environment files.
 
 ## Folder structure
 
@@ -35,16 +33,19 @@ repository.
 - `scripts/tests/testthat/`: unit tests for CTMC and radiation-model helper
   functions.
 - `data/`: input data and generated model, simulation, pricing, and diagnostic
-  objects.
+  objects. In the selective public mirror, these objects should be restored
+  from the Zenodo snapshot before rerunning the full pipeline.
 - `figs/`: generated figures used in the manuscript and appendix.
 - `outputs.RData`: central registry of output paths, settings, and generated
   table objects.
 - `environment/`: reproducible R environment files, including `renv.lock` and
-  the full package-version snapshot CSV.
-- `main-v2.qmd`, `appendix-v2.qmd`, `SM1-supplementary-material.qmd`:
-  manuscript, appendix, and Supplementary Material sources.
-- `site_/`: source and rendered files for the companion website distributed
-  with the Zenodo snapshot.
+  the full package-version snapshot CSV, included in the full archival snapshot
+  when available.
+- `main.qmd`, `appendix.qmd`, `SM1-supplementary-material.qmd`: manuscript,
+  appendix, and Supplementary Material sources, kept outside the selective
+  public mirror unless explicitly distributed with the full archive.
+- `site_/`: source and rendered files for the companion website, kept outside
+  the selective public mirror.
 
 ## Software requirements
 
@@ -53,9 +54,9 @@ root of the replication folder.
 
 The R dependency audit was performed on the active replication sources
 (`scripts/`, `scripts/tests/`, the manuscript/appendix/Supplementary Material
-sources, and the companion-site sources). Deprecated folders, revision-only
-scripts, and generated HTML folders are not part of the replication dependency
-set.
+sources, and the companion-site sources when present). Deprecated folders,
+revision-only scripts, and generated HTML folders are not part of the
+replication dependency set.
 
 Core R dependencies are:
 
@@ -80,17 +81,17 @@ install.packages("remotes")
 remotes::install_github("beniamino98/solarr")
 ```
 
-To reproduce the package versions used for this snapshot, use the included
-lockfile under `environment/renv.lock`:
+To reproduce the package versions used for the full snapshot, use the included
+lockfile under `environment/renv.lock` when it is available:
 
 ```r
 install.packages("renv")
 renv::restore(lockfile = "environment/renv.lock", prompt = FALSE)
 ```
 
-For quick inspection, `environment/r-package-snapshot.csv` contains the package
-names, versions, source type, and repository recorded from the current R
-library.
+For quick inspection, `environment/r-package-snapshot.csv`, when available,
+contains the package names, versions, source type, and repository recorded from
+the current R library.
 
 The folder `scripts/functions/C/` contains C source and compiled shared objects
 used by some numerical routines. Recompilation requires a working C toolchain
@@ -116,11 +117,11 @@ The stages are:
 
 2. `scripts/s1-data.R`
    runs the complete data-generation pipeline. It estimates the radiation
-   models under the historical probability measure, estimates electricity
-   models under historical and risk-neutral measures, estimates residual
-   correlations, simulates joint radiation-electricity paths, computes contract
-   moments and mean-variance objects, and generates diagnostic and forecast
-   data for the Supplementary Material.
+   models under the historical probability measure, estimates electricity-price
+   models and pricing inputs, estimates residual correlations, simulates joint
+   radiation-electricity paths, computes contract moments and mean-variance
+   objects, and generates diagnostic and forecast data for the Supplementary
+   Material.
 
 3. `scripts/s2-tables.R`
    reads the generated objects and stores manuscript, appendix, and
@@ -154,19 +155,7 @@ two-Gaussian bounds, and horizons `1, 2, 3, 5, 10, 15, 30`.
 
 ## Companion website
 
-The website in `site_/` documents the same pipeline at script level and provides
-the compiled Supplementary Material. It is not required for rerunning the
-statistical pipeline, but it is included in the Zenodo snapshot as a convenient
-guide.
-
-To rebuild the website from the replication folder:
-
-```bash
-quarto render site_/index.qmd --no-execute
-quarto render site_/replication --no-execute
-quarto render site_/SM/index.qmd --no-execute
-quarto render site_/SM/SM1-supplementary-material.qmd
-```
-
-The final command executes the Supplementary Material chunks and therefore
-requires the corresponding objects in `site_/SM/outputs.RData`.
+The companion website in `site_/`, when available in the full archive,
+documents the same pipeline at script level and provides the compiled
+Supplementary Material. It is not required for rerunning the statistical
+pipeline, and it is not part of the selective public mirror.
